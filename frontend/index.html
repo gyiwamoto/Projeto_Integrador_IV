@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Simulação de Crédito</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Simulação de Crédito</h1>
+  <form id="clienteForm">
+    <label>Nome:</label>
+    <input type="text" id="nome" required><br><br>
+
+    <label>Renda:</label>
+    <input type="number" id="renda" required><br><br>
+
+    <label>Setor:</label>
+    <input type="text" id="setor" required><br><br>
+
+    <label>Profissão:</label>
+    <input type="text" id="profissao" list="profissoes" required><br><br>
+    <datalist id="profissoes">
+      <option value="Professor">
+      <option value="Médico">
+      <option value="Engenheiro">
+      <option value="Comerciante">
+      <option value="Advogado">
+      <option value="Estudante">
+    </datalist>
+
+    <label>Prazo (meses):</label>
+    <input type="number" id="prazo" required><br><br>
+
+    <label>Estado:</label>
+    <input type="text" id="estado" required><br><br>
+
+    <button type="submit">Analisar Crédito</button>
+  </form>
+
+  <h2>Resultado da Análise</h2>
+  <div id="resultado" class="resultado-box"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
