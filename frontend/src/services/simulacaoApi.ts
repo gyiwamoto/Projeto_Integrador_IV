@@ -8,8 +8,12 @@ export interface ResultadoSimulacao {
   operacoesSemelhantes: number | null
 }
 
+// Em desenvolvimento, utiliza o FastAPI local.
+// Em produção, utiliza o mesmo domínio da aplicação,
+// salvo quando VITE_API_URL estiver configurada.
 const API_URL = (
-  import.meta.env.VITE_API_URL || 'http://localhost:8000'
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV ? 'http://localhost:8000' : '')
 ).replace(/\/+$/, '')
 
 function validarResultado(
@@ -29,7 +33,7 @@ function validarResultado(
     dados.risco === null ||
     typeof dados.risco === 'string'
 
-  const numeroOuNulo = (item: unknown) =>
+  const numeroOuNulo = (item: unknown): boolean =>
     item === null ||
     (
       typeof item === 'number' &&
@@ -63,13 +67,13 @@ export async function analisarSimulacao(
   } catch {
     throw new Error(
       'Não foi possível conectar ao servidor. ' +
-      'Verifique se a API está em execução.'
+      'Verifique se a API de simulação está disponível.'
     )
   }
 
   if (!response.ok) {
     throw new Error(
-      `Não foi possível concluir a simulação. ` +
+      'Não foi possível concluir a simulação. ' +
       `O servidor retornou HTTP ${response.status}.`
     )
   }
@@ -80,7 +84,7 @@ export async function analisarSimulacao(
     resultado = await response.json()
   } catch {
     throw new Error(
-      'A API retornou uma resposta JSON inválida.'
+      'A API de simulação retornou uma resposta JSON inválida.'
     )
   }
 
