@@ -469,6 +469,9 @@ function Simulacao() {
               resultado.operacoesSemelhantes ??
               undefined
             }
+            fonteSerie={resultado.fonteSerie}
+            dataReferencia={resultado.dataReferencia}
+            aviso={resultado.aviso}
             onVerDashboard={handleVerDashboard}
           />
         </>

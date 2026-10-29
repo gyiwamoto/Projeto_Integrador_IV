@@ -97,9 +97,14 @@ const formatadorPercentual = new Intl.NumberFormat('pt-BR', {
   maximumFractionDigits: 2,
 })
 
+// Formato compacto para valores grandes (ex.: R$ 7,4 tri).
 const formatadorMoeda = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
   currency: 'BRL',
+  notation: 'compact',
+  compactDisplay: 'short',
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 1,
 })
 
 function Dashboard() {
@@ -339,34 +344,53 @@ function Dashboard() {
   // INDICADORES DO DASHBOARD
   // =========================================
 
+  // O sistema é stateless (LGPD): quando a API informa 0 análises,
+  // isso significa "não armazenado", e não "nenhuma análise feita".
+  const semHistorico =
+    !modoDemonstracao && dados.total_analises === 0
+
+  const textoNaoArmazenado = 'Não armazenado (LGPD)'
+
+  // Evita mostrar dois cartões idênticos (volume e carteira ativa).
+  const carteiraRepetida =
+    dados.carteira_ativa === dados.volume_credito_total
+
   const indicadores = [
     {
       titulo: 'Total de análises',
-      valor: formatadorNumero.format(
-        dados.total_analises
-      ),
-      descricao: 'Quantidade de análises registradas',
+      valor: semHistorico
+        ? '—'
+        : formatadorNumero.format(dados.total_analises),
+      descricao: semHistorico
+        ? textoNaoArmazenado
+        : 'Quantidade de análises registradas',
     },
     {
       titulo: 'Baixo risco',
-      valor: formatadorNumero.format(
-        dados.baixo_risco
-      ),
-      descricao: 'Análises classificadas como baixo risco',
+      valor: semHistorico
+        ? '—'
+        : formatadorNumero.format(dados.baixo_risco),
+      descricao: semHistorico
+        ? textoNaoArmazenado
+        : 'Análises classificadas como baixo risco',
     },
     {
       titulo: 'Médio risco',
-      valor: formatadorNumero.format(
-        dados.medio_risco
-      ),
-      descricao: 'Análises classificadas como médio risco',
+      valor: semHistorico
+        ? '—'
+        : formatadorNumero.format(dados.medio_risco),
+      descricao: semHistorico
+        ? textoNaoArmazenado
+        : 'Análises classificadas como médio risco',
     },
     {
       titulo: 'Alto risco',
-      valor: formatadorNumero.format(
-        dados.alto_risco
-      ),
-      descricao: 'Análises classificadas como alto risco',
+      valor: semHistorico
+        ? '—'
+        : formatadorNumero.format(dados.alto_risco),
+      descricao: semHistorico
+        ? textoNaoArmazenado
+        : 'Análises classificadas como alto risco',
     },
     {
       titulo: 'Inadimplência média',
@@ -382,7 +406,7 @@ function Dashboard() {
       ),
       descricao: modoDemonstracao
         ? 'Volume financeiro ilustrativo — dados fictícios'
-        : 'Volume financeiro informado pela API',
+        : 'Saldo da carteira de crédito do Sistema Financeiro Nacional (fonte: BACEN)',
     },
     {
       titulo: 'Carteira ativa',
@@ -457,7 +481,15 @@ function Dashboard() {
         )}
 
         <div className="dashboard-grid">
-          {indicadores.map((indicador) => (
+          {indicadores
+            .filter(
+              (indicador) =>
+                !(
+                  carteiraRepetida &&
+                  indicador.titulo === 'Carteira ativa'
+                )
+            )
+            .map((indicador) => (
             <div
               className="dashboard-card"
               key={indicador.titulo}
@@ -470,15 +502,35 @@ function Dashboard() {
             </div>
           ))}
         </div>
+
+        {semHistorico && (
+          <div className="dashboard-aviso-lgpd" role="note">
+            <strong>Por que não há contagem de análises?</strong>
+
+            <p>
+              Por privacidade e em conformidade com a LGPD,
+              este sistema não armazena as simulações
+              realizadas nem os dados informados pelos
+              usuários. Por isso não existe contagem de
+              análises nem distribuição por faixa de risco.
+              Os indicadores de inadimplência e de volume de
+              crédito vêm de dados públicos do Banco Central
+              do Brasil.
+            </p>
+          </div>
+        )}
       </section>
 
-      {/* Gráfico de distribuição de risco existente */}
-      <GraficoRisco
-        baixoRisco={dados.baixo_risco}
-        medioRisco={dados.medio_risco}
-        altoRisco={dados.alto_risco}
-        modoDemonstracao={modoDemonstracao}
-      />
+      {/* Gráfico de distribuição de risco: só faz sentido
+          quando existem análises armazenadas */}
+      {!semHistorico && (
+        <GraficoRisco
+          baixoRisco={dados.baixo_risco}
+          medioRisco={dados.medio_risco}
+          altoRisco={dados.alto_risco}
+          modoDemonstracao={modoDemonstracao}
+        />
+      )}
 
       {/* Novos gráficos previstos na Figura 11 */}
       <div className="dashboard-graficos-grid">

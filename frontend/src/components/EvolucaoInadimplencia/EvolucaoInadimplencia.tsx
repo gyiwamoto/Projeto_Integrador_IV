@@ -23,15 +23,63 @@ const formatadorPercentual = new Intl.NumberFormat('pt-BR', {
   maximumFractionDigits: 2,
 })
 
-function formatarPeriodo(periodo: string) {
+const MESES_ABREVIADOS = [
+  'jan', 'fev', 'mar', 'abr', 'mai', 'jun',
+  'jul', 'ago', 'set', 'out', 'nov', 'dez',
+]
+
+const MESES_COMPLETOS = [
+  'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+  'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
+]
+
+// '2026-08' -> { ano: '2026', mes: 7 }
+function separarPeriodo(periodo: string) {
   const correspondencia = /^(\d{4})-(\d{2})$/.exec(periodo)
 
   if (!correspondencia) {
-    return periodo
+    return null
   }
 
-  // Formato compacto para melhorar a leitura no celular.
-  return `${correspondencia[2]}/${correspondencia[1].slice(2)}`
+  const mes = Number(correspondencia[2]) - 1
+
+  if (mes < 0 || mes > 11) {
+    return null
+  }
+
+  return { ano: correspondencia[1], mes }
+}
+
+// Eixo horizontal: apenas o mês abreviado (ex.: ago).
+function abreviarMes(periodo: string) {
+  const partes = separarPeriodo(periodo)
+
+  return partes ? MESES_ABREVIADOS[partes.mes] : periodo
+}
+
+// Dica ao passar o mouse: mês e ano por extenso.
+function periodoPorExtenso(periodo: string) {
+  const partes = separarPeriodo(periodo)
+
+  return partes
+    ? `${MESES_COMPLETOS[partes.mes]} de ${partes.ano}`
+    : periodo
+}
+
+// Texto do topo do gráfico: o ano (ou os anos) abrangido.
+function descreverIntervalo(primeiro: string, ultimo: string) {
+  const inicio = separarPeriodo(primeiro)
+  const fim = separarPeriodo(ultimo)
+
+  if (!inicio || !fim) {
+    return null
+  }
+
+  if (inicio.ano === fim.ano) {
+    return `${MESES_ABREVIADOS[inicio.mes]} a ${MESES_ABREVIADOS[fim.mes]} de ${fim.ano}`
+  }
+
+  return `${MESES_ABREVIADOS[inicio.mes]}/${inicio.ano} a ${MESES_ABREVIADOS[fim.mes]}/${fim.ano}`
 }
 
 function EvolucaoInadimplencia({
@@ -45,10 +93,14 @@ function EvolucaoInadimplencia({
         item.taxa_inadimplencia >= 0 &&
         item.taxa_inadimplencia <= 100
     )
-    .map((item) => ({
-      ...item,
-      periodoFormatado: formatarPeriodo(item.periodo),
-    }))
+
+  const intervalo =
+    dadosGrafico.length > 0
+      ? descreverIntervalo(
+          dadosGrafico[0].periodo,
+          dadosGrafico[dadosGrafico.length - 1].periodo
+        )
+      : null
 
   const taxas = dadosGrafico.map(
     (item) => item.taxa_inadimplencia
@@ -97,6 +149,12 @@ function EvolucaoInadimplencia({
             Acompanhe a variação da taxa de
             inadimplência ao longo dos períodos.
           </p>
+
+          {intervalo && (
+            <p className="grafico-periodo">
+              Período: <strong>{intervalo}</strong>
+            </p>
+          )}
         </div>
 
         {modoDemonstracao && (
@@ -133,7 +191,10 @@ function EvolucaoInadimplencia({
               />
 
               <XAxis
-                dataKey="periodoFormatado"
+                dataKey="periodo"
+                tickFormatter={(valor: string) =>
+                  abreviarMes(valor)
+                }
                 tick={{ fontSize: 11 }}
                 tickLine={false}
                 axisLine={{ stroke: '#cbd5e1' }}
@@ -164,7 +225,7 @@ function EvolucaoInadimplencia({
                   )}%`
                 }
                 labelFormatter={(valor) =>
-                  `Período: ${String(valor)}`
+                  `Período: ${periodoPorExtenso(String(valor))}`
                 }
               />
 

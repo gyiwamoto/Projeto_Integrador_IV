@@ -2186,3 +2186,33 @@ button:focus-visible {
     padding: 20px;
   }
 }
+
+/* Aviso de privacidade (LGPD) no Dashboard */
+
+.dashboard-aviso-lgpd {
+  margin-top: 24px;
+  padding: 18px 20px;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  background-color: #eff6ff;
+}
+
+.dashboard-aviso-lgpd strong {
+  color: #1d4ed8;
+  font-size: 14px;
+}
+
+.dashboard-aviso-lgpd p {
+  margin: 8px 0 0;
+  color: #334155;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* Período (ano) no topo do gráfico de evolução */
+
+.grafico-cabecalho .grafico-periodo {
+  margin-top: 6px;
+  color: #334155;
+  font-size: 13px;
+}

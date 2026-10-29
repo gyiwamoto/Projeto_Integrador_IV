@@ -6,6 +6,9 @@ interface ResultadoAnaliseProps {
   inadimplenciaEstimada?: number | null
   carteiraAtivaMedia?: number | null
   operacoesSemelhantes?: number | null
+  fonteSerie?: string | null
+  dataReferencia?: string | null
+  aviso?: string | null
   modoDemonstracao?: boolean
   onVerDashboard: () => void
 }
@@ -18,9 +21,35 @@ function ResultadoAnalise({
   inadimplenciaEstimada,
   carteiraAtivaMedia,
   operacoesSemelhantes,
+  fonteSerie,
+  dataReferencia,
+  aviso,
   modoDemonstracao = false,
   onVerDashboard,
 }: ResultadoAnaliseProps) {
+  // '01/08/2026' -> 'agosto de 2026'
+  function descreverReferencia(data?: string | null) {
+    const partes = data ? data.split('/') : []
+
+    if (partes.length !== 3) {
+      return null
+    }
+
+    const meses = [
+      'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+      'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
+    ]
+    const mes = Number(partes[1]) - 1
+
+    if (!Number.isInteger(mes) || mes < 0 || mes > 11) {
+      return null
+    }
+
+    return `${meses[mes]} de ${partes[2]}`
+  }
+
+  const referencia = descreverReferencia(dataReferencia)
+
   function formatarMoeda(valor?: number | null) {
     if (valor == null || !Number.isFinite(valor)) {
       return 'Não disponível'
@@ -144,6 +173,34 @@ function ResultadoAnalise({
           </section>
         ))}
       </div>
+
+      {riscoDisponivel && !modoDemonstracao && (
+        <div className="resultado-aviso" role="note">
+          <strong>Como interpretar este resultado</strong>
+
+          <p>
+            Os indicadores são uma referência de inadimplência
+            baseada em dados públicos do Banco Central do
+            Brasil. Não são uma previsão individual para o
+            perfil informado.
+          </p>
+
+          {fonteSerie && (
+            <p>
+              Fonte: {fonteSerie}
+              {referencia ? ` (dado de ${referencia})` : ''}.
+            </p>
+          )}
+
+          {aviso && (
+            <p>
+              Não havia dado recente do Banco Central para o
+              porte ou a região informados; por isso foi usada
+              a referência nacional geral.
+            </p>
+          )}
+        </div>
+      )}
 
       {!riscoDisponivel && (
         <div className="resultado-aviso" role="status">

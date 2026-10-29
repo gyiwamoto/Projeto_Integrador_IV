@@ -6,6 +6,11 @@ export interface ResultadoSimulacao {
   inadimplenciaEstimada: number | null
   carteiraAtivaMedia: number | null
   operacoesSemelhantes: number | null
+
+  // Informações opcionais sobre a origem do dado.
+  fonteSerie?: string | null
+  dataReferencia?: string | null
+  aviso?: string | null
 }
 
 const API_URL = (
